@@ -3,7 +3,7 @@ import atexit
 from _thread import *
 
 
-s= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s= socket.socket()
 host = socket.gethostbyname(socket.gethostname())
 s.bind((host, 12345))
 s.listen(10)
@@ -50,7 +50,7 @@ def main():
                     c.send(bytes('0','utf-8'))
                     
             elif(ch == 2):
-                if(cusrn in usrdict):
+                if(cusrn == 'srv' or cusrn in usrdict):
                     c.send(bytes('0','utf-8'))
                 else:
                     usrdict.update({cusrn:pas})
@@ -61,8 +61,14 @@ def main():
         
         #loop for getting messages from client and sending response
         while True:
-            usrn,msg = c.recv(1024).decode('utf-8').split(':',1)
-            if(usrn == 'srv'):                
+            try:
+                usrn,msg = c.recv(1024).decode('utf-8').split(':',1)
+                invl = False
+            except:
+                invl = True
+            if(invl):
+                c.send(bytes('Please use valid formatting.','utf-8'))
+            elif(usrn == 'srv'):                
                 msg = msg[:-1]
                 if(msg == 'exit'):
                     coul.remove(cusrn)
@@ -82,8 +88,13 @@ def main():
                             c.send(bytes(x,'utf-8'))
                     else:
                         c.send(bytes('You have no friend request','utf-8'))
+                elif(msg == 'fl'):
+                    if(cusrn in usrfrdict):
+                        for x in usrfrdict[cusrn]:
+                            c.send(bytes(x,'utf-8'))
+                    else:
+                        c.send(bytes('You don\'t have any friends.','utf-8'))
                 elif(msg[:3] == 'sfr'):
-                    print(msg.split('>')[1])
                     if(cusrn in usrfrdict and msg.split('>')[1] in usrfrdict[cusrn]):
                         c.send(bytes('You are already friend with {}'.format(msg.split('>')[1]),'utf-8'))
                     else:

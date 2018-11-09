@@ -2,8 +2,8 @@ import socket
 import select 
 import sys 
 
-srv= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-host = str(sys.argv[1])
+srv= socket.socket()
+host = socket.gethostbyname(socket.gethostname())
 srv.connect((host,12345))
 print("Connected to ",host)
 
@@ -19,13 +19,6 @@ try:
             x = int(srv.recv(1024).decode('utf-8'))
             if(x):
                 print('Authentication successful\n')
-                #print('Users online\n')
-                #while True:
-                    #onl = srv.recv(1024).decode('utf-8')
-                    #if(onl != '-1'):
-                        #print(onl)
-                    #else:
-                        #break
                 break
             else:
                 print('Username or Password was incorrect, try again')
