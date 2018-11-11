@@ -1,11 +1,14 @@
 import socket
 import atexit
 from _thread import *
-
+from _thread import *
+from tkinter import *
+from tkinter import scrolledtext
+import sys
 
 s= socket.socket()
-host = socket.gethostbyname(socket.gethostname())
-s.bind((host, 12345))
+host = sys.argv[1]
+s.bind((host, 1234))
 s.listen(10)
 
 frlst = open('frlst.csv','r')
@@ -34,7 +37,7 @@ usrn2sc = {}
 
 def main():
     def con(c,addr):
-        print("connected with ",addr)
+        print("Connected with ",addr)
         mlbf = True
         #loop for setting connection
         while True:
@@ -50,7 +53,7 @@ def main():
                     c.send(bytes('0','utf-8'))
                     
             elif(ch == 2):
-                if(cusrn == 'srv' or cusrn in usrdict):
+                if(cusrn in ['srv','srvc'] or cusrn in usrdict):
                     c.send(bytes('0','utf-8'))
                 else:
                     usrdict.update({cusrn:pas})
@@ -61,18 +64,12 @@ def main():
         
         #loop for getting messages from client and sending response
         while True:
-            try:
-                usrn,msg = c.recv(1024).decode('utf-8').split(':',1)
-                invl = False
-            except:
-                invl = True
-            if(invl):
-                c.send(bytes('Please use valid formatting.','utf-8'))
-            elif(usrn == 'srv'):                
-                msg = msg[:-1]
+            usrn,msg = c.recv(1024).decode('utf-8').split(':',1)
+            if(usrn == 'srvc'):                
                 if(msg == 'exit'):
                     coul.remove(cusrn)
                     del usrn2sc[cusrn]
+                    c.send(bytes('You are now offline please close the window','utf-8'))
                     c.close()
                     break
                 elif(msg == 'ou'):
@@ -95,6 +92,7 @@ def main():
                     else:
                         c.send(bytes('You don\'t have any friends.','utf-8'))
                 elif(msg[:3] == 'sfr'):
+                    print(msg.split('>')[1])
                     if(cusrn in usrfrdict and msg.split('>')[1] in usrfrdict[cusrn]):
                         c.send(bytes('You are already friend with {}'.format(msg.split('>')[1]),'utf-8'))
                     else:
@@ -120,10 +118,12 @@ def main():
                         c.send(bytes('You are now friend with {}'.format(msg.split('>')[1]),'utf-8'))
                     else:
                         c.send(bytes('You don\'t have friend request from {}'.format(msg.split('>')[1]),'utf-8'))
+            elif(usrn == 'srv'):
+                txt.insert(INSERT,cusrn+'_m : '+msg+'\n')
             else:
                 if(cusrn in usrfrdict and usrn in usrfrdict[cusrn]):
                     if(usrn in coul):
-                        usrn2sc[usrn].send(bytes(cusrn+'_m : '+msg[:-1],'utf-8'))
+                        usrn2sc[usrn].send(bytes(cusrn+'_m : '+msg,'utf-8'))
                     else:
                         c.send(bytes('{} is not online, message is not delievered.'.format(usrn),'utf-8'))
                 else:
@@ -133,29 +133,55 @@ def main():
     while True:
         c,addr = s.accept()
         start_new_thread(con,(c,addr))
-    
-try:
-    main()
-except:
-    print('handling exit')
-    frlst = open('frlst.csv','w')
-    frlst.truncate()
-    for x in frdict:
-        if(frdict[x]):
-            frlst.write(x+':'+','.join(frdict[x])+'\n')
-    frlst.close()
-    
-    usrlst = open('usrlst.csv','w')
-    usrlst.truncate()
-    for x in usrdict:
-        if(len(x)>3):
-            usrlst.write(x+','+usrdict[x]+'\n')
-    usrlst.close()
-    
-    usrfr = open('usrfr.csv','w')
-    usrfr.truncate()
-    for x in usrfrdict:
-        if(usrfrdict[x]):
-            usrfr.write(x+':'+','.join(usrfrdict[x])+'\n')
-    usrfr.close()
-    s.close()
+
+
+def send(event):
+    global ent
+    msg = ent.get()
+    txt.insert(INSERT,msg+'\n')
+    usrn,msg = msg.split(':')
+    if(usrn in coul):
+        usrn2sc[usrn].send(bytes('srv_m : '+msg,'utf-8'))
+    else:
+        txt.insert(INSERT,'{} is not online, message is not delievered.'.format(usrn)+'\n')
+        #c.send(bytes('{} is not online, message is not delievered.'.format(usrn),'utf-8'))
+    ent.delete(0,'end')
+
+root = Tk()
+root.resizable(0,0)
+root.title('Server Chat Window')
+root.bind("<Return>", send)
+txt = scrolledtext.ScrolledText(root)
+txt.grid(column=0,row=0,columnspan = 2)
+ent = Entry(root,width=65)
+ent.grid(column=0, row=1)
+btn = Button(root, text="Send", command=send,width=10)
+btn.grid(column=1, row=1)
+
+start_new_thread(main,())
+root.mainloop()
+
+
+
+print('handling exit')
+frlst = open('frlst.csv','w')
+frlst.truncate()
+for x in frdict:
+    if(frdict[x]):
+        frlst.write(x+':'+','.join(frdict[x])+'\n')
+frlst.close()
+
+usrlst = open('usrlst.csv','w')
+usrlst.truncate()
+for x in usrdict:
+    if(len(x)>3):
+        usrlst.write(x+','+usrdict[x]+'\n')
+usrlst.close()
+
+usrfr = open('usrfr.csv','w')
+usrfr.truncate()
+for x in usrfrdict:
+    if(usrfrdict[x]):
+        usrfr.write(x+':'+','.join(usrfrdict[x])+'\n')
+usrfr.close()
+s.close()
