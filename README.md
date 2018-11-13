@@ -2,7 +2,7 @@
 A simple client server application using socket programming in python
 
 
-##Formating used for messages:
+## Formating used for messages:
 1. Sending message to a user named 'test'
     test:hi this is a test message
 2. Sending a query to server
@@ -24,14 +24,14 @@ A simple client server application using socket programming in python
 
         
 
-##CSV files and their roles:
+## CSV files and their roles:
 1. usrlst.csv : stores list of registered users and passwords
 2. frlst.csv : stores pending friend requests of users
 3. usrfr.csv : sotres friend lists of users
 
 
 
-##Some features:
+## Some features:
 1. You can send message to only those users which are online and are in your friend list
 2. You can send friend request to a user even if he/she is offline
 3. Firend request can not be sent to a non-existing user
