@@ -7,17 +7,17 @@ A simple client server application using socket programming in python
     test:hi this is a test message
 2. Sending a query to server
     * Cheking friend list
-        srvc:fl
+        * srvc:fl
     * Cheking friend requests
-        srvc:fr
+        * srvc:fr
     * Sending friend request to a user named test
-        srvc:sfr>test
+        * srvc:sfr>test
     * Accepting a friend request from user name test
-        srvc:afr>test
+        * srvc:afr>test
     * Checking online friends
-        srvc:ou
+        * srvc:ou
     * Logout of session
-        srvc:exit
+        * srvc:exit
 3. Everyone can send message to server for that use the username 'srv'
     note: srv and srvc are diffrent, srvc is used for sending queries to server while srv can be used for sending general messages
 4. Server can also send message to anyone
