@@ -5,69 +5,69 @@ from _thread import *
 from tkinter import *
 from tkinter import scrolledtext
 
-srv= socket.socket()
+server = socket.socket()
 host = str(sys.argv[1])
-srv.connect((host,1234))
-print("Connected to ",host)
+server.connect((host, 1234))
+print("Connected to ", host)
 
-
+# login or register to system
 while True:
     print('1. Login\n2. Register\n3. Quit')
-    ch = int(input('Enter your choice : '))
-    if(ch == 1):
-        srv.send(bytes('1','utf-8'))
-        usrn = input("Username : ")
-        pswd = input("Password : ")
-        srv.send(bytes(usrn+','+pswd,'utf-8'))
-        x = int(srv.recv(1024).decode('utf-8'))
-        if(x):
+    choice = int(input('Enter your choice : '))
+    if(choice == 1):
+        server.send(bytes('1', 'utf-8'))
+        username = input("Username : ")
+        password = input("Password : ")
+        server.send(bytes(username + ',' + password, 'utf-8'))
+        server_reply = int(server.recv(1024).decode('utf-8'))
+        if(server_reply):
             print('Authentication successful\n')
             break
         else:
             print('Username or Password was incorrect, try again')
         
-    elif(ch == 2):
-        usrn = input("Username : ")
-        pswd1 = input("Password : ")
-        pswd2 = input("Confirm Password : ")
-        if(pswd1 != pswd2):
+    elif(choice == 2):
+        username = input("Username : ")
+        password = input("Password : ")
+        password_confirm = input("Confirm Password : ")
+        if(password ! = password_confirm):
             print('Passwords dont match, try again')
         else:
-            srv.send(bytes('2','utf-8'))
-            srv.send(bytes(usrn+','+pswd1,'utf-8'))
-            x = int(srv.recv(1024).decode('utf-8'))
-            if(x):
+            server.send(bytes('2', 'utf-8'))
+            server.send(bytes(username + ',' + password, 'utf-8'))
+            server_reply = int(server.recv(1024).decode('utf-8'))
+            if(server_reply):
                 print('Registration successful\n')
                 break
             else:
                 print('Username already exist, try another username')
             
-def recv():
-    global srv
+# get messages from server and append to text box
+def get_message(server, text_box):
     while True:
-        msg = srv.recv(1024).decode('utf-8')
-        if not(msg):
-            srv.close()
+        message = server.recv(1024).decode('utf-8')
+        if not(message):
+            server.close()
             break
-        txt.insert(INSERT,msg+'\n')
+        text_box.insert(INSERT, message + '\n')
 
-def send(event):
-    global ent
-    msg = ent.get()
-    txt.insert(INSERT,msg+'\n')
-    srv.send(bytes(msg,'utf-8'))
-    ent.delete(0,'end')
+# send message to server, also adds message text to text box
+def send(text_entry, text_box):
+    message = text_entry.get()
+    text_box.insert(INSERT, message + '\n')
+    server.send(bytes(message, 'utf-8'))
+    text_entry.delete(0, 'end')
 
 root = Tk()
-root.resizable(0,0)
-root.title(usrn+' Chat Window')
+root.resizable(0, 0)
+root.title(username + ' Chat Window')
 root.bind("<Return>", send)
-txt = scrolledtext.ScrolledText(root)
-txt.grid(column=0,row=0,columnspan = 2)
-ent = Entry(root,width=65)
-ent.grid(column=0, row=1)
-btn = Button(root, text="Send", command=send,width=10)
-btn.grid(column=1, row=1)
+text_box = scrolledtext.ScrolledText(root)
+text_box.grid(column = 0, row = 0, columnspan = 2)
+text_entry = Entry(root, width = 65)
+text_entry.grid(column = 0, row = 1)
+send_button = Button(root, text = "Send", command = lambda: send(text_entry, text_box), width = 10)
+send_button.grid(column = 1, row = 1)
 
-start_new_thread(recv,())
+start_new_thread(get_message, (server, text_box))
 root.mainloop()
